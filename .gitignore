@@ -5,7 +5,7 @@
 *logs.txt
 
 # poetry
-pyproject.toml
+poetry.lock
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
