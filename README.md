@@ -5,6 +5,16 @@ This is a ...
 - ...
 - ...
 
+### Endpoints
+
+```
+    /market/users
+    /market/crypto
+    /market/users/<string:login>/balance
+    /market/users/<string:login>/portfolio
+    /market/users/<string:login>/operations
+```
+
 ### Usage
 
 Create venv:
