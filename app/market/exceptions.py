@@ -1,7 +1,8 @@
 from sqlalchemy.exc import SQLAlchemyError
 
+
 class MarketError(Exception):
-    def __init__(self, message="Market Error", status_code=400, payload=None):
+    def __init__(self, message='Market Error', status_code=400, payload=None):
         self.message = message
         self.payload = payload
         self.status_code = status_code
@@ -13,6 +14,7 @@ class MarketError(Exception):
         error_dict['message'] = self.message
 
         return error_dict
+
 
 class DatabaseError(SQLAlchemyError):
     pass

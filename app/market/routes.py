@@ -1,18 +1,18 @@
 from flask import Blueprint, Response, jsonify, request
 
-from app.market import market
-from app.market import exceptions
-
+from app.market import exceptions, market
 
 bp = Blueprint('market', __name__)
+
 
 @bp.errorhandler(exceptions.MarketError)
 def handle_market_error(error):
     return jsonify(error.as_dict()), error.status_code
 
+
 @bp.route('/users', methods=['GET', 'POST'])
 def users():
-    if request.method == "GET":
+    if request.method == 'GET':
         '''
         Get list of users
         '''
@@ -20,9 +20,8 @@ def users():
         users = market.get_users()
 
         return jsonify(users)
-        
-    
-    if request.method == "POST":
+
+    if request.method == 'POST':
         '''
         Register new user
         '''
@@ -30,21 +29,21 @@ def users():
         market.add_user(login)
 
         return Response(status=200)
-    
+
     return None
 
 
 @bp.route('/users/<string:login>/operations', methods=['GET', 'POST'])
 def users_operations(login):
-    if request.method == "GET":
+    if request.method == 'GET':
         '''
         Get history of user's operations
         '''
         operations = market.get_operations(login)
 
         return jsonify(operations)
-    
-    if request.method == "POST":
+
+    if request.method == 'POST':
         '''
         Sale or purchase crypto
         '''
@@ -56,12 +55,13 @@ def users_operations(login):
         market.add_operation(login, crypto_name, operation_type, amount, time)
 
         return Response(status=200)
-    
+
     return None
+
 
 @bp.route('/users/<string:login>/balance', methods=['GET'])
 def users_balance(login):
-    if request.method == "GET":
+    if request.method == 'GET':
         '''
         Get users's balance
         '''
@@ -69,12 +69,13 @@ def users_balance(login):
         balance = market.get_balance(login)
 
         return jsonify(balance)
-    
+
     return None
+
 
 @bp.route('/users/<string:login>/portfolio', methods=['GET'])
 def users_portfolio(login):
-    if request.method == "GET":
+    if request.method == 'GET':
         '''
         Get user's portfolio of crypto
         '''
@@ -82,12 +83,13 @@ def users_portfolio(login):
         portfolio = market.get_portfolio(login)
 
         return jsonify(portfolio)
-    
+
     return None
+
 
 @bp.route('/crypto', methods=['GET', 'POST'])
 def crypto():
-    if request.method == "GET":
+    if request.method == 'GET':
         '''
         Get list of crypto
         '''
@@ -95,8 +97,8 @@ def crypto():
         crypto = market.get_crypto()
 
         return jsonify(crypto)
-    
-    if request.method == "POST":
+
+    if request.method == 'POST':
         '''
         Add new crypto
         '''
@@ -107,5 +109,5 @@ def crypto():
         market.add_crypto(crypto_name, purchase_cost, sale_cost)
 
         return Response(status=200)
-    
+
     return None
