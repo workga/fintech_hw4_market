@@ -42,10 +42,6 @@ ci:	lint test ## Lint code then run tests
 up: ## Run application
 	$(VENV)/bin/flask run
 
-.PHONY: init
-init: ## Init or clear database
-	$(VENV)/bin/flask init-db
-
-.PHONY: clean
-clean: ## Remove temporary files
-	rm ./*logs.txt
+.PHONY: clear-db
+init: ## Clear database
+	$(VENV)/bin/flask clear-db
