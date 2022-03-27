@@ -3,7 +3,6 @@ TESTS = tests
 VENV ?= .venv
 CODE = tests app
 
-export FLASK_ENV = development
 
 .PHONY: help
 help: ## Show this help
@@ -20,6 +19,10 @@ venv:
 .PHONY: test
 test: ## Runs pytest
 	$(VENV)/bin/pytest -v tests
+
+.PHONY: test-lf
+test-lf: ## Runs pytest
+	$(VENV)/bin/pytest -v --lf tests
 
 .PHONY: lint
 lint: ## Lint code
@@ -38,10 +41,11 @@ format: ## Formats all files
 .PHONY: ci
 ci:	lint test ## Lint code then run tests
 
+
 .PHONY: up
 up: ## Run application
-	$(VENV)/bin/flask run
+	FLASK_APP=app.py FLASK_ENV=development $(VENV)/bin/flask run
 
 .PHONY: clear-db
-init: ## Clear database
-	$(VENV)/bin/flask clear-db
+clear-db: ## Clear database
+	FLASK_APP=app.py FLASK_ENV=development $(VENV)/bin/flask clear-db

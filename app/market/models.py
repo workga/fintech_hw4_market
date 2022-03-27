@@ -1,3 +1,4 @@
+from typing import Any
 
 from sqlalchemy import (
     CheckConstraint,
@@ -15,8 +16,7 @@ from sqlalchemy.orm import relationship
 from app.market.database import Base
 
 
-# or use json encoder?
-def serialized(model):
+def serialized(model: Base) -> Any:
     if isinstance(model, list):
         return [serialized(o) for o in model]
 
@@ -27,12 +27,6 @@ def serialized(model):
 # multiplied by 100 and stored as integers.
 # For example 1005.45 units of some crypto turns into 100545
 
-# def encode_money(amount):
-#     return floor(amount * 100)
-
-# def decode_money(amount):
-#     return amount / 100
-
 
 class User(Base):
     __tablename__ = 'user'
@@ -42,15 +36,12 @@ class User(Base):
     balance = Column(Integer, default=1000 * 100)
 
     __table_args__ = (
-        CheckConstraint('name != ""'),
+        CheckConstraint('login != ""'),
         CheckConstraint('balance >= 0'),
     )
 
-    def __init__(self, login):
+    def __init__(self, login: str) -> None:
         self.login = login
-
-    # def __repr__(self):
-    #     return "<User('%d','%s', '%d')>" % (self.id, self.login, self.balance)
 
 
 class Crypto(Base):
@@ -68,13 +59,15 @@ class Crypto(Base):
         CheckConstraint('sale_cost > 0'),
     )
 
-    def __init__(self, name, purchase_cost, sale_cost):
+    def __init__(
+        self,
+        name: str,
+        purchase_cost: int,
+        sale_cost: int,
+    ) -> None:
         self.name = name
         self.purchase_cost = purchase_cost
         self.sale_cost = sale_cost
-
-    # def __repr__(self):
-    #     return "<Crypto('%s','%d', '%d)>" % (self.name, self.purchase_cost, self.sale_cost)
 
 
 class Portfolio(Base):
@@ -85,20 +78,16 @@ class Portfolio(Base):
     amount = Column(Integer, nullable=False)
 
     __table_args__ = (
-        # UniqueConstraint('user_id', 'crypto_id'),
-        PrimaryKeyConstraint('user_id', 'crypto_id', name='portfolio_pk'),
+        PrimaryKeyConstraint('user_id', 'crypto_id'),
         CheckConstraint('amount >= 0'),
     )
 
     user = relationship('User', lazy='joined')
 
-    def __init__(self, user_id, crypto_id, amount):
+    def __init__(self, user_id: int, crypto_id: int, amount: int) -> None:
         self.user_id = user_id
         self.crypto_id = crypto_id
         self.amount = amount
-
-    # def __repr__(self):
-    #     return "<Portfolio('%d','%d', '%d)>" % (self.user_id, self.crypto_id, self.amount)
 
 
 class Operation(Base):
@@ -121,7 +110,6 @@ class Operation(Base):
         ForeignKeyConstraint(
             ['user_id', 'crypto_id'],
             ['portfolio.user_id', 'portfolio.crypto_id'],
-            name='portfolio_fk',
         ),
         CheckConstraint('operation_type in ("sale", "purchase")'),
         CheckConstraint('amount >= 0'),
@@ -132,8 +120,14 @@ class Operation(Base):
     user = relationship('User', lazy='joined')
 
     def __init__(
-        self, user_id, crypto_id, operation_type, amount, purchase_cost, sale_cost
-    ):
+        self,
+        user_id: int,
+        crypto_id: int,
+        operation_type: str,
+        amount: int,
+        purchase_cost: int,
+        sale_cost: int,
+    ) -> None:
         self.user_id = user_id
         self.crypto_id = crypto_id
 
@@ -142,6 +136,3 @@ class Operation(Base):
         self.amount = amount
         self.purchase_cost = purchase_cost
         self.sale_cost = sale_cost
-
-    # def __repr__(self):
-    #     return "<Portfolio('%d','%d', '%d)>" % (self.user_id, self.crypto_id, self.amount)
