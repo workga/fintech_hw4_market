@@ -119,3 +119,28 @@ def test_add_crypto_db_exception(
 
     with pytest.raises(MarketError):
         market.add_crypto(crypto_name, purchase_cost, sale_cost)
+
+
+def test_update_crypto_success():
+    with create_session() as session:
+        db_crypto = Crypto('Favicoin', 200, 100)
+        session.add(db_crypto)
+
+    market.update_crypto('Favicoin', 250, 150)
+
+    with create_session() as session:
+        db_crypto = session.query(Crypto).where(Crypto.name == 'Favicoin').one()
+
+        assert db_crypto.purchase_cost == 250
+        assert db_crypto.sale_cost == 150
+
+
+def test_update_crypto_db_exception(mocker):
+    with create_session() as session:
+        db_crypto = Crypto('Favicoin', 200, 100)
+        session.add(db_crypto)
+
+        mock_db_exception(mocker)
+
+        with pytest.raises(MarketError):
+            market.update_crypto('Favicoin', 250, 150)

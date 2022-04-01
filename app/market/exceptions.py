@@ -23,5 +23,4 @@ class MarketError(Exception):
         return error_dict
 
 
-class DatabaseError(SQLAlchemyError):
-    pass
+DatabaseError = SQLAlchemyError

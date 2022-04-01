@@ -3,8 +3,8 @@ import pytest
 from app.market import market
 from app.market.database import create_session
 from app.market.exceptions import MarketError
-from app.market.models import User
-from tests.market.conftest import mock_db_exception
+from app.market.models import Crypto, User
+from tests.market.conftest import formatted_now, mock_db_exception
 
 
 # ----------/ get_users() /----------
@@ -101,3 +101,29 @@ def test_add_user_fail(stored_users, login):
 
     with pytest.raises(MarketError):
         market.add_user(login)
+
+
+# get_balance
+def test_get_balance_success():
+    with create_session() as session:
+        db_user = User('Annet')
+        session.add(db_user)
+        db_crypto = Crypto('Favicoin', 200, 100)
+        session.add(db_crypto)
+
+    assert market.get_balance('Annet')['balance'] == 1000 * 100
+    market.add_operation('Annet', 'Favicoin', 'purchase', 10, formatted_now())
+    assert market.get_balance('Annet')['balance'] == 1000 * 100 - 200 * 10
+
+
+def test_get_balance_db_exception(mocker):
+    with create_session() as session:
+        db_user = User('Annet')
+        session.add(db_user)
+        db_crypto = Crypto('Favicoin', 200, 100)
+        session.add(db_crypto)
+
+    mock_db_exception(mocker)
+
+    with pytest.raises(MarketError):
+        market.get_balance('Annet')

@@ -4,7 +4,6 @@ import click
 from flask import Flask
 from flask.cli import with_appcontext
 from sqlalchemy import create_engine
-from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import Session, sessionmaker
 
@@ -34,11 +33,10 @@ def create_session(**kwargs: int) -> Session:
         session = SessionFactory(**kwargs)
         yield session
         session.commit()
-    except SQLAlchemyError as error:
+    except exceptions.DatabaseError as error:
         session.rollback()
         get_logger().error(error)
-
-        raise exceptions.DatabaseError(error) from error
+        raise
     finally:
         session.close()
 

@@ -61,12 +61,13 @@ def add_operation(
             crypto = session.query(Crypto).where(Crypto.name == crypto_name).one()
 
             # Time check is used for both purchase and sale operations
-            # pytest.set_trace()
             if (time - crypto.last_updated) >= CRYPTO_UPDATE_DELTA:
                 raise exceptions.MarketError('Crypto exchange rate has been updated')
 
             user = session.query(User).where(User.login == login).one()
 
+            # import pytest
+            # pytest.set_trace()
             if operation_type == 'purchase':
                 purchase(session, user, crypto, amount)
             elif operation_type == 'sale':

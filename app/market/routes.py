@@ -25,11 +25,18 @@ def users() -> Optional[Response]:
         return jsonify(users_list)
 
     if request.method == 'POST':
+        data = request.get_json()
 
-        login = request.args.get('login', '', str)
+        if not data:
+            return Response(status=422)
+        try:
+            login = data['login']
+        except KeyError:
+            return Response(status=422)
+
         market.add_user(login)
 
-        return Response(status=200)
+        return Response(status=201)
 
     return None
 
@@ -47,15 +54,21 @@ def users_operations(login: str) -> Optional[Response]:
         return jsonify(operations_list)
 
     if request.method == 'POST':
+        data = request.get_json()
 
-        crypto_name = request.args.get('crypto_name', '', str)
-        operation_type = request.args.get('operation_type', '', str)
-        amount = request.args.get('amount', 0, int)
-        time_str = request.args.get('time_str', '', str)
+        if not data:
+            return Response(status=422)
+        try:
+            crypto_name = data['crypto_name']
+            operation_type = data['operation_type']
+            amount = data['amount']
+            time_str = data['time_str']
+        except KeyError:
+            return Response(status=422)
 
         market.add_operation(login, crypto_name, operation_type, amount, time_str)
 
-        return Response(status=200)
+        return Response(status=201)
 
     return None
 
@@ -101,13 +114,19 @@ def crypto() -> Optional[Response]:
         return jsonify(crypto_list)
 
     if request.method == 'POST':
+        data = request.get_json()
 
-        crypto_name = request.args.get('crypto_name', '', str)
-        purchase_cost = request.args.get('purchase_cost', 0, int)
-        sale_cost = request.args.get('sale_cost', 0, int)
+        if not data:
+            return Response(status=422)
+        try:
+            crypto_name = data['crypto_name']
+            purchase_cost = data['purchase_cost']
+            sale_cost = data['sale_cost']
+        except KeyError:
+            return Response(status=422)
 
         market.add_crypto(crypto_name, purchase_cost, sale_cost)
 
-        return Response(status=200)
+        return Response(status=201)
 
     return None
