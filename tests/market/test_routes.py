@@ -23,10 +23,7 @@ def test_users_post(client):
 
 @pytest.mark.parametrize(
     'json',
-    [
-        None,
-        {},
-    ],
+    [{}],
 )
 def test_users_post_invalid(client, json):
     response = client.post('/market/users', json=json)
@@ -67,7 +64,6 @@ def test_users_operations_post(client):
 @pytest.mark.parametrize(
     'json',
     [
-        None,
         {},
         {
             # 'crypto_name': 'Favicoin',
@@ -154,7 +150,6 @@ def test_crypto_post(client):
 @pytest.mark.parametrize(
     'json',
     [
-        None,
         {},
         {
             # 'crypto_name': 'Favicoin',
