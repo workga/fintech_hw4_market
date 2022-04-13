@@ -3,7 +3,7 @@ import pytest
 from app.market import market
 from app.market.config import CRYPTO_UPDATE_DELTA
 from app.market.database import create_session
-from app.market.exceptions import MarketError
+from app.market.exceptions import DatabaseError, MarketError
 from app.market.models import Crypto, Operation, User
 from tests.market.conftest import formatted_now, mock_db_exception
 
@@ -24,9 +24,13 @@ def test_get_operation_success(user, crypto, login, amount):
     market.add_operation(user.login, crypto.name, 'sale', amount, formatted_now())
 
     operations = market.get_operations(login)
-    assert len(operations) == 2
-    assert operations[0]['operation_type'] == 'purchase'
-    assert operations[1]['operation_type'] == 'sale'
+    assert len(operations) == 2, 'Wrong number of operations'
+    assert (
+        operations[0]['operation_type'] == 'purchase'
+    ), 'Wrong operation_type of first operation'
+    assert (
+        operations[1]['operation_type'] == 'sale'
+    ), 'Wrong operation_type of second operation'
 
 
 @pytest.mark.parametrize(
@@ -45,7 +49,7 @@ def test_get_operation_db_excepton(mocker, user, crypto, login, amount):
 
     mock_db_exception(mocker)
 
-    with pytest.raises(MarketError):
+    with pytest.raises(DatabaseError):
         market.get_operations(login)
 
 
@@ -71,7 +75,7 @@ def test_get_operation_fail(mocker, user, crypto, login, amount):
 
     mock_db_exception(mocker)
 
-    with pytest.raises(MarketError):
+    with pytest.raises(DatabaseError):
         market.get_operations(login)
 
 
@@ -101,9 +105,13 @@ def test_add_operation_success(user, crypto, amount):
             .order_by(Operation.created)
             .all()
         )
-        assert len(operations) == 2
-        assert operations[0].operation_type == 'purchase'
-        assert operations[1].operation_type == 'sale'
+        assert len(operations) == 2, 'Wrong number of operations'
+        assert (
+            operations[0].operation_type == 'purchase'
+        ), 'Wrong operation_type of first operation'
+        assert (
+            operations[1].operation_type == 'sale'
+        ), 'Wrong operation_type of second operation'
 
 
 @pytest.mark.parametrize(
@@ -121,11 +129,11 @@ def test_add_operation_db_exception(mocker, user, crypto, amount):
 
     mock_db_exception(mocker)
 
-    with pytest.raises(MarketError):
+    with pytest.raises(DatabaseError):
         market.add_operation(
             user.login, crypto.name, 'purchase', amount, formatted_now()
         )
-    with pytest.raises(MarketError):
+    with pytest.raises(DatabaseError):
         market.add_operation(user.login, crypto.name, 'sale', amount, formatted_now())
 
 
@@ -138,12 +146,26 @@ def test_add_operation_db_exception(mocker, user, crypto, amount):
         ('Annet', 'Geckcoin', 10),
         ('Annet', '', 10),
         ('Annet', None, 10),
+    ],
+)
+def test_add_operation_purchase_fail_db_error(login, crypto_name, amount):
+    with create_session() as session:
+        session.add(User('Annet'))
+        session.add(Crypto('Favicoin', 200, 100))
+
+    with pytest.raises(DatabaseError):
+        market.add_operation(login, crypto_name, 'purchase', amount, formatted_now())
+
+
+@pytest.mark.parametrize(
+    ('login', 'crypto_name', 'amount'),
+    [
         ('Annet', 'Favicoin', 1000),
         ('Annet', 'Favicoin', 0),
         ('Annet', 'Favicoin', -10),
     ],
 )
-def test_add_operation_purchase_fail(login, crypto_name, amount):
+def test_add_operation_purchase_fail_market_error(login, crypto_name, amount):
     with create_session() as session:
         session.add(User('Annet'))
         session.add(Crypto('Favicoin', 200, 100))
@@ -161,12 +183,28 @@ def test_add_operation_purchase_fail(login, crypto_name, amount):
         ('Annet', 'Geckcoin', 10),
         ('Annet', '', 10),
         ('Annet', None, 10),
+    ],
+)
+def test_add_operation_sale_fail_db_error(login, crypto_name, amount):
+    with create_session(expire_on_commit=False) as session:
+        session.add(User('Annet'))
+        session.add(Crypto('Favicoin', 200, 100))
+
+    market.add_operation('Annet', 'Favicoin', 'purchase', 10, formatted_now())
+
+    with pytest.raises(DatabaseError):
+        market.add_operation(login, crypto_name, 'sale', amount, formatted_now())
+
+
+@pytest.mark.parametrize(
+    ('login', 'crypto_name', 'amount'),
+    [
         ('Annet', 'Favicoin', 1000),
         ('Annet', 'Favicoin', 0),
         ('Annet', 'Favicoin', -10),
     ],
 )
-def test_add_operation_sale_fail(login, crypto_name, amount):
+def test_add_operation_sale_fail_market_error(login, crypto_name, amount):
     with create_session(expire_on_commit=False) as session:
         session.add(User('Annet'))
         session.add(Crypto('Favicoin', 200, 100))

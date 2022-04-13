@@ -2,7 +2,7 @@ import pytest
 
 from app.market import market
 from app.market.database import create_session
-from app.market.exceptions import MarketError
+from app.market.exceptions import DatabaseError
 from app.market.models import Crypto
 from tests.market.conftest import mock_db_exception
 
@@ -23,7 +23,7 @@ def test_get_crypto_success(stored_crypto, count):
 
     crypto = market.get_crypto()
 
-    assert len(crypto) == count
+    assert len(crypto) == count, 'Wrong number of crypto'
 
 
 @pytest.mark.parametrize(
@@ -41,7 +41,7 @@ def test_get_crypto_db_exception(mocker, stored_crypto):
 
     mock_db_exception(mocker)
 
-    with pytest.raises(MarketError):
+    with pytest.raises(DatabaseError):
         market.get_crypto()
 
 
@@ -68,8 +68,8 @@ def test_add_crypto_success(stored_crypto, crypto_name, purchase_cost, sale_cost
 
     with create_session() as session:
         crypto = session.query(Crypto).where(Crypto.name == crypto_name).one()
-        assert crypto.purchase_cost == purchase_cost
-        assert crypto.sale_cost == sale_cost
+        assert crypto.purchase_cost == purchase_cost, 'Returned purchase_cost is wrong'
+        assert crypto.sale_cost == sale_cost, 'Returned sale_cost is wrong'
 
 
 @pytest.mark.parametrize(
@@ -91,7 +91,7 @@ def test_add_crypto_fail(stored_crypto, crypto_name, purchase_cost, sale_cost):
         for crypto in stored_crypto:
             session.add(crypto)
 
-    with pytest.raises(MarketError):
+    with pytest.raises(DatabaseError):
         market.add_crypto(crypto_name, purchase_cost, sale_cost)
 
 
@@ -117,7 +117,7 @@ def test_add_crypto_db_exception(
 
     mock_db_exception(mocker)
 
-    with pytest.raises(MarketError):
+    with pytest.raises(DatabaseError):
         market.add_crypto(crypto_name, purchase_cost, sale_cost)
 
 
@@ -131,8 +131,8 @@ def test_update_crypto_success():
     with create_session() as session:
         db_crypto = session.query(Crypto).where(Crypto.name == 'Favicoin').one()
 
-        assert db_crypto.purchase_cost == 250
-        assert db_crypto.sale_cost == 150
+        assert db_crypto.purchase_cost == 250, 'purchase_cost updated wrong'
+        assert db_crypto.sale_cost == 150, 'sale_cost updated wrong'
 
 
 def test_update_crypto_db_exception(mocker):
@@ -142,5 +142,5 @@ def test_update_crypto_db_exception(mocker):
 
         mock_db_exception(mocker)
 
-        with pytest.raises(MarketError):
+        with pytest.raises(DatabaseError):
             market.update_crypto('Favicoin', 250, 150)

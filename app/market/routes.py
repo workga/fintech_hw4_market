@@ -7,9 +7,14 @@ from app.market import exceptions, market
 bp = Blueprint('market', __name__)
 
 
+@bp.errorhandler(exceptions.DatabaseError)
+def handle_database_error(error: exceptions.DatabaseError) -> Tuple[Response, int]:
+    return jsonify(error), 500
+
+
 @bp.errorhandler(exceptions.MarketError)
 def handle_market_error(error: exceptions.MarketError) -> Tuple[Response, int]:
-    return jsonify(error.as_dict()), error.status_code
+    return jsonify(error), 400
 
 
 @bp.route('/users', methods=['GET', 'POST'])

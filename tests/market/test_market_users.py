@@ -2,7 +2,7 @@ import pytest
 
 from app.market import market
 from app.market.database import create_session
-from app.market.exceptions import MarketError
+from app.market.exceptions import DatabaseError
 from app.market.models import Crypto, User
 from tests.market.conftest import formatted_now, mock_db_exception
 
@@ -23,7 +23,7 @@ def test_get_users_success(stored_users, count):
 
     users = market.get_users()
 
-    assert len(users) == count
+    assert len(users) == count, 'Wrong number of users'
 
 
 @pytest.mark.parametrize(
@@ -41,7 +41,7 @@ def test_get_users_db_exception(mocker, stored_users):
 
     mock_db_exception(mocker)
 
-    with pytest.raises(MarketError):
+    with pytest.raises(DatabaseError):
         market.get_users()
 
 
@@ -63,7 +63,7 @@ def test_add_user_success(stored_users, login):
 
     with create_session() as session:
         user = session.query(User).where(User.login == login).one()
-        assert user.balance == 1000 * 100
+        assert user.balance == 1000 * 100, 'Wrong default balance'
 
 
 @pytest.mark.parametrize(
@@ -81,7 +81,7 @@ def test_add_user_db_exception(mocker, stored_users, login):
 
     mock_db_exception(mocker)
 
-    with pytest.raises(MarketError):
+    with pytest.raises(DatabaseError):
         market.add_user(login)
 
 
@@ -99,7 +99,7 @@ def test_add_user_fail(stored_users, login):
         for user in stored_users:
             session.add(user)
 
-    with pytest.raises(MarketError):
+    with pytest.raises(DatabaseError):
         market.add_user(login)
 
 
@@ -111,9 +111,11 @@ def test_get_balance_success():
         db_crypto = Crypto('Favicoin', 200, 100)
         session.add(db_crypto)
 
-    assert market.get_balance('Annet')['balance'] == 1000 * 100
+    assert market.get_balance('Annet')['balance'] == 1000 * 100, 'Wrong default balance'
     market.add_operation('Annet', 'Favicoin', 'purchase', 10, formatted_now())
-    assert market.get_balance('Annet')['balance'] == 1000 * 100 - 200 * 10
+    assert (
+        market.get_balance('Annet')['balance'] == 1000 * 100 - 200 * 10
+    ), 'Balance changed wrong'
 
 
 def test_get_balance_db_exception(mocker):
@@ -125,5 +127,5 @@ def test_get_balance_db_exception(mocker):
 
     mock_db_exception(mocker)
 
-    with pytest.raises(MarketError):
+    with pytest.raises(DatabaseError):
         market.get_balance('Annet')

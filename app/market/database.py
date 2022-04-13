@@ -1,15 +1,20 @@
 from contextlib import contextmanager
+from functools import wraps
+from typing import Any, Callable, TypeVar, cast
 
 import click
 from flask import Flask
 from flask.cli import with_appcontext
 from sqlalchemy import create_engine
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import Session, sessionmaker
 
 from app.market import exceptions
 from app.market.config import MARKET_DB_URL
 from app.market.logger import get_logger
+
+F = TypeVar('F', bound=Callable[..., Any])
 
 Base = declarative_base()
 SessionFactory = sessionmaker()
@@ -33,19 +38,27 @@ def create_session(**kwargs: int) -> Session:
         session = SessionFactory(**kwargs)
         yield session
         session.commit()
-    except exceptions.DatabaseError as error:
+    except SQLAlchemyError as error:
         session.rollback()
         get_logger().error(error)
-        raise
+        raise exceptions.DatabaseError(error) from error
     finally:
         session.close()
+
+
+def db_session(func: F) -> F:
+    @wraps(func)
+    def wrapper(*args: int, **kwargs: int) -> Any:
+        with create_session() as session:
+            return func(*args, session=session, **kwargs)
+
+    return cast(F, wrapper)
 
 
 def clear_db() -> None:
     with create_session() as session:
         for table in reversed(Base.metadata.sorted_tables):
             session.execute(table.delete())
-    get_logger().info('Database cleared')
 
 
 @click.command('clear-db')

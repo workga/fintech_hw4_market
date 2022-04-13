@@ -2,7 +2,7 @@ import pytest
 
 from app.market import market
 from app.market.database import create_session
-from app.market.exceptions import MarketError
+from app.market.exceptions import DatabaseError
 from app.market.models import Crypto, User
 from tests.market.conftest import formatted_now, mock_db_exception
 
@@ -21,7 +21,9 @@ def test_get_portfolio_success():
     market.add_operation('Annet', 'Geckcoin', 'purchase', 10, formatted_now())
     market.add_operation('Annet', 'Geckcoin', 'sale', 2, formatted_now())
 
-    assert len(market.get_portfolio('Annet')) == 2
+    assert (
+        len(market.get_portfolio('Annet')) == 2
+    ), 'Wrong number of operations in portfolio'
 
 
 def test_get_portfolio_fail(mocker):
@@ -40,5 +42,5 @@ def test_get_portfolio_fail(mocker):
 
     mock_db_exception(mocker)
 
-    with pytest.raises(MarketError):
+    with pytest.raises(DatabaseError):
         market.get_portfolio('Annet')

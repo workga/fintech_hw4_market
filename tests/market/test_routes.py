@@ -10,15 +10,15 @@ def test_users_get(client):
     response = client.get('/market/users')
 
     data = response.get_json()
-    assert len(data) == 2
-    assert response.status_code == 200
+    assert len(data) == 2, 'Wrong number of users'
+    assert response.status_code == 200, 'Wrong status code'
 
 
 def test_users_post(client):
     response = client.post('/market/users', json={'login': 'Annet'})
 
-    assert len(market.get_users()) == 1
-    assert response.status_code == 201
+    assert len(market.get_users()) == 1, "User wasn't added"
+    assert response.status_code == 201, 'Wrong status code'
 
 
 @pytest.mark.parametrize(
@@ -28,7 +28,7 @@ def test_users_post(client):
 def test_users_post_invalid(client, json):
     response = client.post('/market/users', json=json)
 
-    assert response.status_code == 422
+    assert response.status_code == 422, 'Wrong status code'
 
 
 def test_users_operaions_get(client):
@@ -40,8 +40,8 @@ def test_users_operaions_get(client):
     response = client.get('/market/users/Annet/operations')
     data = response.get_json()
 
-    assert response.status_code == 200
-    assert len(data) == 2
+    assert response.status_code == 200, 'Wrong status code'
+    assert len(data) == 2, 'Wrong number of operations'
 
 
 def test_users_operations_post(client):
@@ -58,7 +58,7 @@ def test_users_operations_post(client):
         },
     )
 
-    assert response.status_code == 201
+    assert response.status_code == 201, 'Wrong status code'
 
 
 @pytest.mark.parametrize(
@@ -97,7 +97,7 @@ def test_users_operations_post_invalid(client, json):
 
     response = client.post('/market/users/Annet/operations', json=json)
 
-    assert response.status_code == 422
+    assert response.status_code == 422, 'Wrong status code'
 
 
 def test_users_balance_get(client):
@@ -108,8 +108,8 @@ def test_users_balance_get(client):
     response = client.get('/market/users/Annet/balance')
     data = response.get_json()
 
-    assert response.status_code == 200
-    assert data['balance'] == 1000 * 100 - 200 * 10
+    assert response.status_code == 200, 'Wrong status code'
+    assert data['balance'] == 1000 * 100 - 200 * 10, 'Balance updated wrong'
 
 
 def test_users_portfolio_get(client):
@@ -123,8 +123,8 @@ def test_users_portfolio_get(client):
     response = client.get('/market/users/Annet/portfolio')
     data = response.get_json()
 
-    assert response.status_code == 200
-    assert len(data) == 2
+    assert response.status_code == 200, 'Wrong status code'
+    assert len(data) == 2, 'Wrong number of operations in portfolio'
 
 
 def test_crypto_get(client):
@@ -143,8 +143,8 @@ def test_crypto_post(client):
         json={'crypto_name': 'Favicoin', 'purchase_cost': 200, 'sale_cost': 100},
     )
 
-    assert len(market.get_crypto()) == 1
-    assert response.status_code == 201
+    assert len(market.get_crypto()) == 1, "Crypto wasn't added"
+    assert response.status_code == 201, 'Wrong status code'
 
 
 @pytest.mark.parametrize(
@@ -174,4 +174,4 @@ def test_crypto_post_invalid(client, json):
         json=json,
     )
 
-    assert response.status_code == 422
+    assert response.status_code == 422, 'Wrong status code'
